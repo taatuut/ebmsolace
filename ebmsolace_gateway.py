@@ -56,7 +56,7 @@ def publish_to_solace(topic, message):
     """Publishes message to Solace broker using SMF protocol."""
     try:
         # Publish message
-        publisher.publish(message.encode("utf-8"), topic)
+        publisher.publish(message, topic)
         return True
     except Exception as e:
         print(f"Error publishing to Solace: {e}")

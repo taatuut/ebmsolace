@@ -77,7 +77,7 @@ default    Running    aarch64    8       12GiB     100GiB    docker     192.168.
 
 Can do `colima ssh` to work in colima.
 
-DO NOT use `--profile`, with this I could not find option to get an IP for colima. 
+Not using `--profile`, with this I could not find option to get an IP for colima (on Apple M2 Max). 
 
 For further testing can do somethign like `colima start --network-address --network-driver slirp --very-verbose`
 
