@@ -77,9 +77,9 @@ def main():
         print(f"Response text: {response.text}")
     else:
         print("Failed to send SOAP request to gateway.")
-    response = send_ebms_message(f"{SOLACE_REST_URL}{SOLACE_TOPIC_EBMS}", soap_message, unique_id)
+    response = send_ebms_message(f"{SOLACE_REST_URL}/{EBMS_TOPIC}/", soap_message, unique_id)
     if response:
-        print(f"REST request sent to broker {SOLACE_REST_URL}{SOLACE_TOPIC_EBMS}")
+        print(f"REST request sent to broker {SOLACE_REST_URL}/{EBMS_TOPIC}/")
         print("\nBroker Response:")
         print(f"Status Code: {response.status_code}")
         print(f"Response text: {response.text}")
@@ -90,7 +90,7 @@ if __name__ == "__main__":
     # Load values from the configuration
     config = ConfigLoader("config.json")
     EBMS_URL = config.get("ebms.url")
-    SOLACE_TOPIC_EBMS = config.get("ebms.topic")
+    EBMS_TOPIC = config.get("ebms.topic")
 
     # NOTE: environment variables must be sourced in advance
     # Solace broker connection settings
@@ -101,7 +101,7 @@ if __name__ == "__main__":
     SOLACE_REST_PORT = os.environ["SOLACE_REST_PORT"]
 
     # Solace REST API URL
-    SOLACE_REST_URL = f"http://{SOLACE_HOST}:{SOLACE_REST_PORT}/"
+    SOLACE_REST_URL = f"http://{SOLACE_HOST}:{SOLACE_REST_PORT}"
 
     main()
 

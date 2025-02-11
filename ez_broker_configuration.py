@@ -60,17 +60,16 @@ if __name__ == "__main__":
     APP_DEBUG = config.get("app.debug")
     
     # NOTE: environment variables must be sourced in advance
-
     # Solace broker connection settings
     SOLACE_VPN = os.environ["SOLACE_MESSAGE_VPN"]
     SOLACE_USER = os.environ["SOLACE_USER"]
     SOLACE_PASS = os.environ["SOLACE_PASS"]
     SOLACE_CLIENT_USER = os.environ["SOLACE_CLIENT_USER"]
-    SOLACE_HOST = "localhost"
-    SOLACE_PORT = 8080
+    SOLACE_HOST = os.environ["SOLACE_HOST"]
+    SOLACE_MANAGEMENT_PORT = os.environ["SOLACE_MANAGEMENT_PORT"]
 
     # Base API URL
-    BASE_URL = f"http://{SOLACE_HOST}:{SOLACE_PORT}/SEMP/v2/config/msgVpns/{SOLACE_VPN}"
+    BASE_URL = f"http://{SOLACE_HOST}:{SOLACE_MANAGEMENT_PORT}/SEMP/v2/config/msgVpns/{SOLACE_VPN}"
 
     # Headers
     HEADERS = {
