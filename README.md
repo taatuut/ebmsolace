@@ -1,16 +1,13 @@
 ebmsolace
 ---
-
 ebMS Solace PubSub+
 
 Repo
 ---
-
 `git clone https://github.com/taatuut/ebmsolace.git`
 
 Setup
 ---
-
 Create and source a Python virtual environment, use `~/.venv`.
 
 Open a Terminal and run:
@@ -21,7 +18,7 @@ python3 -m venv ~/.venv
 source ~/.venv/bin/activate
 ```
 
-Using the Terminal install Python modules (optional: update `pip`)
+Using the Terminal install Python modules (optional: `upgrade pip`)
 
 ```
 python3 -m pip install --upgrade pip
@@ -32,22 +29,17 @@ python3 -m pip install solace-pubsubplus
 python3 -m pip install pyyaml
 ```
 
-Commands
----
-
-```
-python3 -m pip list > pip_list.txt
-```
-
 Prep
 ---
+Check `sample.env` and copy/create `.env` with own values.
 
 `source .env`
 
+Add relevant information to configuration file (default config.json).
+
 Run
 ---
-
-A Solace broker must be running. Use PubSub+ cloud or a local broker. Can use a desktop tool like Docker and Podman, or go without using `colima` see https://dev.to/mochafreddo/running-docker-on-macos-without-docker-desktop-64o
+A Solace broker must be running. Use PubSub+ cloud or a local broker. Can use a desktop tool like Docker and Podman, or go without desktop and use something like `colima`, see https://dev.to/mochafreddo/running-docker-on-macos-without-docker-desktop-64o
 
 ```
 brew install docker
@@ -58,7 +50,7 @@ brew services start colima
 
 To fix issue with `colima` where running docker containers cannot be accessed on exposed ports, start `colima` with `--network-address`. This requires `qemu`. See https://github.com/abiosoft/colima/blob/main/docs/FAQ.md#the-virtual-machines-ip-is-not-reachable and https://github.com/abiosoft/colima/issues/801 for more information.
 
-After `brew services start colima` restart using
+After `brew services start colima`, do a restart with `--network-address`.
 
 ```
 colima stop
@@ -66,7 +58,7 @@ colima delete
 colima start --cpu 8 --memory 12 --network-address
 ```
 
-HINT: to watch the boot progress, see "/Users/emilzegers/.colima/_lima/<profile>/serial*.log"
+HINT: to watch the boot progress, see "~/.colima/_lima/<profile>/serial*.log"
 
 Run `colima list` to check if it has an `ADDRESS`
 
@@ -75,33 +67,33 @@ PROFILE    STATUS     ARCH       CPUS    MEMORY    DISK      RUNTIME    ADDRESS
 default    Running    aarch64    8       12GiB     100GiB    docker     192.168.64.2
 ```
 
-Can do `colima ssh` to work in colima.
+Can do `colima ssh` to work in colima VM.
 
-Not using `--profile`, with this I could not find option to get an IP for colima (on Apple M2 Max). 
+Do not use `--profile`, with this I could not find option to get colima running with an IP4 address (on a Apple M2 Max). 
 
-For further testing can do something like `colima start --network-address --network-driver slirp --very-verbose`
+TODO: further testing with network driver? Not necessary now.
 
-Run Solace broker container.
+`colima start --network-address --network-driver slirp --very-verbose`
+
+Run container with Solace PubSub+ Event Broker Standard edition. Note usage of environment variables assuming these are sourced and running on mac/linux.
 
 ```
 docker run -d -p 8080:8080 -p 55554:55555 -p 8008:8008 -p 1883:1883 -p 8000:8000 -p 5672:5672 -p 9000:9000 -p 2222:2222 --shm-size=2g --env username_admin_globalaccesslevel=$SOLACE_USER --env username_admin_password=$SOLACE_PASS --name=$SOLACE_NAME solace/solace-pubsub-standard
 ```
 
-NOTE: The VM environment `colima` needs some time to start, download docker disk image, fire up stuff and become responsive, so `docker run...` might fail initially like:
+NOTE: The VM environment `colima` needs some time for first start, has to download docker disk image, fire up stuff and become responsive, so `docker run...` might fail initially like:
 
 ```
-brew services start colima
-
+brew services start colima <parameters>
 ==> Successfully started `colima` (label: homebrew.mxcl.colima)
-docker run -d -p 8080:8080 -p 55554:55555 -p 8008:8008 -p 1883:1883 -p 8000:8000 -p 5672:5672 -p 9000:9000 -p 2222:2222 --shm-size=2g --env username_admin_globalaccesslevel=$SOLACE_USER --env username_admin_password=$SOLACE_PASS --name=$SOLACE_NAME solace/solace-pubsub-standard
+docker run <parameters> solace/solace-pubsub-standard
+
 docker: Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?.
 ```
 
 In that case just execute `docker run...` command again after a few seconds.
 
-Check running containers with `docker ps -a`.
-
-To remove use `docker rm -f CONTAINER_ID`
+Check running containers with `docker ps -a`. To remove a container use `docker rm -f CONTAINER_ID`.
 
 ```
 docker ps -a
@@ -109,7 +101,7 @@ CONTAINER ID   IMAGE                           COMMAND               CREATED    
 eff27f105325   solace/solace-pubsub-standard   "/usr/sbin/boot.sh"   2 minutes ago   Exited (2) 2 minutes ago             solacebms
 ```
 
-Configure broker
+To configure the Solace broker run:
 
 ```
 python3 ez_broker_configuration.py
@@ -117,21 +109,26 @@ python3 ez_broker_configuration.py
 
 Check in Solace PubSub+ Event Broker management console at http://localhost:8080/ to see queue statistics.
 
-Run the ebmssolace gateway
+Run the ebmssolace gateway:
 
 ```
 python3 ebmsolace_gateway.py
 ```
 
-Send message to ebmssolace gateway
+Send a message, will go to both ebmssolace gateway and Solace broker.
 
 ```
 python3 ebMSSoapSender.py
 ```
 
+Commands
+---
+```
+python3 -m pip list > pip_list.txt
+```
+
 UML
 ---
-
 https://www.planttext.com/
 
 ```
@@ -158,9 +155,9 @@ Gateway -> Sender: Acknowledge SOAP Response (200 OK)
 
 Notes
 ---
-
 Handling SOAP messages with Solace PubSub+ broker:
 
+```
 1. REST Integration Options:
    - Use PubSub+ REST capabilities to bridge SOAP services
    - Leverage HTTP/HTTPS support with REST Delivery Points (RDPs)
@@ -182,6 +179,7 @@ Handling SOAP messages with Solace PubSub+ broker:
    - Use REST as an intermediary protocol between SOAP and Solace
    - Implement message transformation workflows for protocol conversion
    - Leverage PubSub+ supported protocols like JMS or AMQP for integration
+```
 
 For detailed implementation guidance, refer to:
 
@@ -196,3 +194,7 @@ https://docs.solace.com/API/Connectors/Self-Contained-Connectors/Message-Process
 - PubSub+ Messaging APIs
 
 https://docs.solace.com/API/Messaging-APIs/Solace-APIs-Overview.htm
+
+TODO
+---
+Explore  Message Transformation Approach using connector.
