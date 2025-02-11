@@ -9,7 +9,7 @@ def generate_uuid():
     return str(uuid.uuid4())
 
 def getCPA():
-    return random.choice(['http://www.logius.nl/cpa/123456', 'http://www.logius.nl/cpa/23456', 'http://www.logius.nl/cpa/86420', 'http://www.logius.nl/cpa/98765'])
+    return random.choice(['cpa123456', 'cpa23456', 'cpa86420', 'cpa98765'])
 def getService():
     return random.choice(['urn:services:SupplierOrderProcessing', 'urn:services:QuoteToCollect'])
 def getAction():
