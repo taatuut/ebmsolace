@@ -6,6 +6,7 @@ from solace.messaging.messaging_service import MessagingService
 from solace.messaging.resources.topic import Topic
 # ez
 from ez_config_loader import ConfigLoader
+from ez_opentelemetry import *
 
 def extract_soap_data(soap_xml):
     """Extracts Digipoort-kenmerk and body content from SOAP XML."""
@@ -13,8 +14,8 @@ def extract_soap_data(soap_xml):
         root = ET.fromstring(soap_xml)
         digipoort_kenmerk = root.find(".//Digipoort-kenmerk")
         payload = root.find(".//Content")
-        # create dynamic topic using EBMS_TOPIC as root based on incoming SOAP message properties
-        # TODO: get namespsaces and elements from config file?
+        # Create dynamic topic using EBMS_TOPIC as root based on incoming SOAP message properties
+        # Ok to have namespsaces and elements hardcoded as this is dedicated ebmsolace gateway script
         namespaces = {'eb': 'http://www.oasis-open.org/committees/ebxml-msg/schema/msg-header-2_0.xsd'} # add more as needed
         cpaid = root.find('.//eb:CPAId', namespaces)
         conversationid = root.find('.//eb:ConversationId', namespaces)

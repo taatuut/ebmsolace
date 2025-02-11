@@ -10,7 +10,7 @@ Setup
 ---
 Create and source a Python virtual environment, use `~/.venv`.
 
-Open a Terminal and run:
+Open a terminal and run:
 
 ```
 mkdir -p ~/.venv
@@ -101,9 +101,7 @@ Can do `colima ssh` to work in colima VM.
 
 Do not use `--profile`, with this I could not find option to get colima running with an IP4 address (on a Apple M2 Max). 
 
-TODO: further testing with network driver? Not necessary now.
-
-`colima start --network-address --network-driver slirp --very-verbose`
+Further testing with network driver not necessary now. Could look at `colima start --network-address --network-driver slirp --very-verbose` some time.
 
 Run container with Solace PubSub+ Event Broker Standard edition. Note usage of environment variables assuming these are sourced and running on mac/linux.
 
@@ -153,7 +151,7 @@ python3 ebMSSoapSender.py
 
 Run repeatedly every 10 seconds 
 
-````
+```
 while true; do python3 ebMSSoapSender.py; sleep 10; done
 ```
 
@@ -231,6 +229,30 @@ https://docs.solace.com/API/Connectors/Self-Contained-Connectors/Message-Process
 
 https://docs.solace.com/API/Messaging-APIs/Solace-APIs-Overview.htm
 
-TODO
+Opentelemetry
 ---
+To enable context propagation for distributed tracing, you must first add the Solace PubSub+ OpenTelemetry Python Integration package as a dependency in your application. You can also add this package with the following command:
+
+```
+python3 -m pip install pubsubplus-opentelemetry-integration
+```
+
+Then add the OpenTelemetry API and SDK libraries required for context propagation with the following commands:
+
+```
+python3 -m pip install opentelemetry-api==1.22.0 opentelemetry-sdk==1.22.0 opentelemetry-exporter-otlp
+```
+
+Note that `pubsubplus-opentelemetry-integration 1.0.1` requires `opentelemetry-api==1.22.0`.
+
+Source: https://docs.solace.com/API/API-Developer-Guide-Python/Python-API-Distributed-Tracing.htm
+
+Next steps
+---
+1.
 Explore  Message Transformation Approach using connector.
+
+https://docs.solace.com/API/Connectors/Self-Contained-Connectors/Message-Processor/Message-Processor-Overview.htm
+
+2.
+OpenTelemetry
