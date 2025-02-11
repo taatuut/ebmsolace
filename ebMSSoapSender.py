@@ -1,3 +1,4 @@
+import os
 import requests
 import uuid
 # ez
@@ -34,7 +35,10 @@ def create_ebms_soap_message(uuid_str, payload):
                 <eb:Reference xlink:href="cid:{uuid_str}" xmlns:xlink="http://www.w3.org/1999/xlink"/>
             </eb:Manifest>
             <Payload>
-                <Document Digipoort-kenmerk="{uuid_str}">{payload}</Document>
+                <Document>
+                    <Digipoort-kenmerk>{uuid_str}</Digipoort-kenmerk>
+                    <Content>{payload}</Content>
+                </Document>
             </Payload>
         </soapenv:Body>
     </soapenv:Envelope>
@@ -62,24 +66,42 @@ def send_ebms_message(url, message, uuid_str):
     return None
 
 def main():
-    ebms_url = EBMS_URL
     unique_id = generate_uuid()
-    soap_message = create_ebms_soap_message(unique_id, "Hallo wereld")
-    response = send_ebms_message(ebms_url, soap_message, unique_id)
-    
+    message_content = "Logius ipsum dolor sit amet, consectetur adipiscing elit. Phasellus mi nulla, commodo et porttitor eget, cursus eu arcu. In commodo augue eget ante vehicula tincidunt ut eget sapien."
+    soap_message = create_ebms_soap_message(unique_id, message_content)
+    response = send_ebms_message(EBMS_URL, soap_message, unique_id)    
     if response:
-        print("SOAP Request Sent:")
-        print(soap_message)
-        print("\nServer Response:")
+        print(f"SOAP request sent to gateway {EBMS_URL}")
+        print("\nGateway Response:")
         print(f"Status Code: {response.status_code}")
-        print(response.text)
+        print(f"Response text: {response.text}")
     else:
-        print("Failed to send SOAP request.")
+        print("Failed to send SOAP request to gateway.")
+    response = send_ebms_message(f"{SOLACE_REST_URL}{SOLACE_TOPIC_EBMS}", soap_message, unique_id)
+    if response:
+        print(f"REST request sent to broker {SOLACE_REST_URL}{SOLACE_TOPIC_EBMS}")
+        print("\nBroker Response:")
+        print(f"Status Code: {response.status_code}")
+        print(f"Response text: {response.text}")
+    else:
+        print("Failed to send REST request to broker.")
 
 if __name__ == "__main__":
     # Load values from the configuration
     config = ConfigLoader("config.json")
     EBMS_URL = config.get("ebms.url")
+    SOLACE_TOPIC_EBMS = config.get("ebms.topic")
+
+    # NOTE: environment variables must be sourced in advance
+    # Solace broker connection settings
+    SOLACE_MESSAGE_VPN = os.environ["SOLACE_MESSAGE_VPN"]
+    SOLACE_CLIENT_USER = os.environ["SOLACE_CLIENT_USER"]
+    SOLACE_CLIENT_PASS = os.environ["SOLACE_CLIENT_PASS"]
+    SOLACE_HOST = os.environ["SOLACE_HOST"]
+    SOLACE_REST_PORT = os.environ["SOLACE_REST_PORT"]
+
+    # Solace REST API URL
+    SOLACE_REST_URL = f"http://{SOLACE_HOST}:{SOLACE_REST_PORT}/"
 
     main()
 

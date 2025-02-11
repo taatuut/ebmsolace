@@ -12,7 +12,7 @@ def extract_soap_data(soap_xml):
     try:
         root = ET.fromstring(soap_xml)
         digipoort_kenmerk = root.find(".//Digipoort-kenmerk")
-        payload = root.find(".//Payload")
+        payload = root.find(".//Content")
 
         return (
             digipoort_kenmerk.text if digipoort_kenmerk is not None else "Unknown",
@@ -24,7 +24,7 @@ def extract_soap_data(soap_xml):
 class SOAPRequestHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         content_length = int(self.headers['Content-Length'])
-        post_data = self.rfile.read(content_length).decode('utf-8')        
+        post_data = self.rfile.read(content_length).decode('utf-8')
         digipoort_kenmerk, payload = extract_soap_data(post_data)
         json_message = json.dumps({
             "Digipoort-kenmerk": digipoort_kenmerk,
@@ -32,7 +32,15 @@ class SOAPRequestHandler(BaseHTTPRequestHandler):
         })
         
         # TODO: create dynamic topic using SOLACE_TOPIC_EBMS as root based on incoming SOAP message properties
-        topic_dest = Topic.of(SOLACE_TOPIC_EBMS) 
+        topic_dest = Topic.of(SOLACE_TOPIC_EBMS)
+        ''''
+        Use these XML elements
+                <eb:CPAId>ExampleCPA</eb:CPAId>
+                <eb:ConversationId>{uuid_str}</eb:ConversationId>
+                <eb:Service>ExampleService</eb:Service>
+                <eb:Action>ExampleAction</eb:Action>
+        See example in cc
+        '''
         if publish_to_solace(topic_dest, json_message):
             self.send_response(200)
             self.send_header("Content-type", "text/xml")
@@ -66,24 +74,22 @@ if __name__ == "__main__":
     # Load values from the configuration
     config = ConfigLoader("config.json")
     SOLACE_TOPIC_EBMS = config.get("ebms.topic")
-
-    # Only print, write etc in debug modus, should be environment variable
-    debug = True # True / False
+    # Only print, write etc in debug modus, using config variable
+    APP_DEBUG = config.get("app.debug")
 
     # NOTE: environment variables must be sourced in advance
-
     # Solace broker connection settings
     SOLACE_MESSAGE_VPN = os.environ["SOLACE_MESSAGE_VPN"]
     SOLACE_CLIENT_USER = os.environ["SOLACE_CLIENT_USER"]
     SOLACE_CLIENT_PASS = os.environ["SOLACE_CLIENT_PASS"]
-    SOLACE_HOST = "localhost"
-    SOLACE_PORT = 55554
+    SOLACE_HOST = os.environ["SOLACE_HOST"]
+    SOLACE_SMF_PORT = os.environ["SOLACE_SMF_PORT"]
 
     # Initialize Solace Messaging Service
     messaging_service = (
         MessagingService.builder()
         .from_properties({
-            "solace.messaging.transport.host": f"tcp://{SOLACE_HOST}:{SOLACE_PORT}",
+            "solace.messaging.transport.host": f"tcp://{SOLACE_HOST}:{SOLACE_SMF_PORT}",
             "solace.messaging.service.vpn-name": SOLACE_MESSAGE_VPN,
             "solace.messaging.authentication.scheme.basic.username": SOLACE_CLIENT_USER,
             "solace.messaging.authentication.scheme.basic.password": SOLACE_CLIENT_PASS

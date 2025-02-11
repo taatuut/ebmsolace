@@ -55,13 +55,10 @@ if __name__ == "__main__":
     config = ConfigLoader("config.json")
     # Queue and Subscription Details
     QUEUE_NAME = config.get("ebms.queue")
-    TOPIC_SUBSCRIPTION = config.get("ebms.topic")
-
-    EBMS_URL = config.get("ebms.url")
-
-    # Only print, write etc in debug modus, should be environment variable
-    debug = True # True / False
-
+    TOPIC_SUBSCRIPTION = config.get("ebms.subscription")
+    # Only print, write etc in debug modus, using config variable
+    APP_DEBUG = config.get("app.debug")
+    
     # NOTE: environment variables must be sourced in advance
 
     # Solace broker connection settings

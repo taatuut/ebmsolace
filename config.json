@@ -3,7 +3,8 @@
         "url": "http://localhost:54321",
         "_url": "http://example.com/ebms-endpoint",
         "queue": "CUSTOM-QNAME-ebms",
-        "topic": "ebms/messages"
+        "topic": "ebms/messages/",
+        "subscription": "ebms/messages/>"
     },
     "app": {
         "debug": true,

@@ -79,7 +79,7 @@ Can do `colima ssh` to work in colima.
 
 Not using `--profile`, with this I could not find option to get an IP for colima (on Apple M2 Max). 
 
-For further testing can do somethign like `colima start --network-address --network-driver slirp --very-verbose`
+For further testing can do something like `colima start --network-address --network-driver slirp --very-verbose`
 
 Run Solace broker container.
 
@@ -127,6 +127,33 @@ Send message to ebmssolace gateway
 
 ```
 python3 ebMSSoapSender.py
+```
+
+UML
+---
+
+https://www.planttext.com/
+
+```
+@startuml
+participant "ebMS Sender" as Sender
+participant "ebMS-Solace Gateway" as Gateway
+participant "Solace Broker" as Broker
+participant "CUSTOM-QNAME-ebms Queue" as Queue
+participant "Solace Try Me!" as Consumer1
+participant "MQTT Consumer" as Consumer2
+participant "Custom Microservice" as Consumer3
+
+Sender -> Gateway: Send ebMS SOAP Message
+Gateway -> Gateway: Extract Digipoort-kenmerk & Convert to JSON
+Gateway -> Broker: Publish JSON to topix "ebms/messages" (SMF Protocol)
+Broker -> Queue: CUSTOM-QNAME-ebms attracts messages with subscription to "ebms/messages"
+Queue -> Consumer1: Solace Try Me! consumes message from queue "CUSTOM-QNAME-ebms"
+Queue -> Consumer2: MQTT Consumer consumes message from queue "CUSTOM-QNAME-ebms"
+Queue -> Consumer3: A custom microservice consumes message from queue "CUSTOM-QNAME-ebms"
+
+Gateway -> Sender: Acknowledge SOAP Response (200 OK)
+@enduml
 ```
 
 Notes

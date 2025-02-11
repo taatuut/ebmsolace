@@ -172,3 +172,4 @@ cython_debug/
 
 # Custom
 pip_list.txt
+images/*.png
