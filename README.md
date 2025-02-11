@@ -121,6 +121,12 @@ Send a message, will go to both ebmssolace gateway and Solace broker.
 python3 ebMSSoapSender.py
 ```
 
+Run repeatedly every 10 seconds 
+
+````
+while true; do python3 ebMSSoapSender.py; sleep 10; done
+```
+
 Commands
 ---
 ```

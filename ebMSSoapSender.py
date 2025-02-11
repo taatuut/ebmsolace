@@ -1,11 +1,19 @@
 import os
 import requests
 import uuid
+import random
 # ez
 from ez_config_loader import ConfigLoader
 
 def generate_uuid():
     return str(uuid.uuid4())
+
+def getCPA():
+    return random.choice(['http://www.logius.nl/cpa/123456', 'http://www.logius.nl/cpa/23456', 'http://www.logius.nl/cpa/86420', 'http://www.logius.nl/cpa/98765'])
+def getService():
+    return random.choice(['urn:services:SupplierOrderProcessing', 'urn:services:QuoteToCollect'])
+def getAction():
+    return random.choice(['NewPurchaseOrder', 'NewOrder', 'PurchaseOrderResponse'])
 
 def create_ebms_soap_message(uuid_str, payload):
     # Define the SOAP envelope with ebMS headers and payload
@@ -20,10 +28,10 @@ def create_ebms_soap_message(uuid_str, payload):
                 <eb:To>
                     <eb:PartyId>urn:example:receiver</eb:PartyId>
                 </eb:To>
-                <eb:CPAId>ExampleCPA</eb:CPAId>
+                <eb:CPAId>{getCPA()}</eb:CPAId>
                 <eb:ConversationId>{uuid_str}</eb:ConversationId>
-                <eb:Service>ExampleService</eb:Service>
-                <eb:Action>ExampleAction</eb:Action>
+                <eb:Service>{getService()}</eb:Service>
+                <eb:Action>{getAction()}</eb:Action>
                 <eb:MessageData>
                     <eb:MessageId>{uuid_str}</eb:MessageId>
                     <eb:Timestamp>2025-02-10T12:00:00Z</eb:Timestamp>
@@ -72,7 +80,7 @@ def main():
     response = send_ebms_message(EBMS_URL, soap_message, unique_id)    
     if response:
         print(f"SOAP request sent to gateway {EBMS_URL}")
-        print("\nGateway Response:")
+        print("Gateway Response:")
         print(f"Status Code: {response.status_code}")
         print(f"Response text: {response.text}")
     else:
@@ -80,7 +88,7 @@ def main():
     response = send_ebms_message(f"{SOLACE_REST_URL}/{EBMS_TOPIC}/", soap_message, unique_id)
     if response:
         print(f"REST request sent to broker {SOLACE_REST_URL}/{EBMS_TOPIC}/")
-        print("\nBroker Response:")
+        print("Broker Response:")
         print(f"Status Code: {response.status_code}")
         print(f"Response text: {response.text}")
     else:

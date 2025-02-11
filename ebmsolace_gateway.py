@@ -17,7 +17,6 @@ def extract_soap_data(soap_xml):
         # TODO: get namespsaces and elements from config file?
         namespaces = {'eb': 'http://www.oasis-open.org/committees/ebxml-msg/schema/msg-header-2_0.xsd'} # add more as needed
         cpaid = root.find('.//eb:CPAId', namespaces)
-        print(f"cpaid: {cpaid}")
         conversationid = root.find('.//eb:ConversationId', namespaces)
         service = root.find('.//eb:Service', namespaces)
         action = root.find('.//eb:Action', namespaces)
