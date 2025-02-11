@@ -18,16 +18,46 @@ python3 -m venv ~/.venv
 source ~/.venv/bin/activate
 ```
 
-Using the Terminal install Python modules (optional: `upgrade pip`)
+Install Python modules (optional: `upgrade pip`)
 
 ```
 python3 -m pip install --upgrade pip
-python3 -m pip install lxml
-# for ebmsolace gateway
-python3 -m pip install solace-pubsubplus
-# for ez modules
-python3 -m pip install pyyaml
+python3 -m pip install requests lxml solace-pubsubplus pyyaml
 ```
+
+Use `pipreqs` to collect and check required modules (do not use `freeze`).
+
+```
+python3 -m pip install pipreqs
+```
+
+Then use `which python` to find path to folder where pipreqs resides.
+
+```
+which python
+˜/.venv/bin/python
+```
+
+So `pipreqs` is in folder `˜/.venv/bin/`. Now execute `pipreqs` using full paths.
+
+```
+~/.venv/bin/pipreqs ~/GitHub/taatuut/ebmsolace --force --savepath ~/GitHub/taatuut/ebmsolace/requirements.txt
+```
+
+Will respond with something like:
+
+```
+INFO: Not scanning for jupyter notebooks.
+WARNING: Import named "PyYAML" not found locally. Trying to resolve it at the PyPI server.
+WARNING: Import named "PyYAML" was resolved to "PyYAML:6.0.2" package (https://pypi.org/project/PyYAML/).
+Please, verify manually the final list of requirements.txt to avoid possible dependency confusions.
+WARNING: Import named "Requests" not found locally. Trying to resolve it at the PyPI server.
+WARNING: Import named "Requests" was resolved to "requests:2.32.3" package (https://pypi.org/project/requests/).
+Please, verify manually the final list of requirements.txt to avoid possible dependency confusions.
+INFO: Successfully saved requirements file in /Users/emilzegers/GitHub/taatuut/ebmsolace/requirements.txt
+```
+
+As mentioned in the response, verify manually the final list of requirements.txt to avoid possible dependency confusions.
 
 Prep
 ---
