@@ -78,21 +78,25 @@ def main():
     message_content = "Logius ipsum dolor sit amet, consectetur adipiscing elit. Phasellus mi nulla, commodo et porttitor eget, cursus eu arcu. In commodo augue eget ante vehicula tincidunt ut eget sapien."
     soap_message = create_ebms_soap_message(unique_id, message_content)
     response = send_ebms_message(EBMS_URL, soap_message, unique_id)    
+    print()
     if response:
-        print(f"SOAP request sent to gateway {EBMS_URL}")
+        print(f"SOAP request sent to ebMS gateway {EBMS_URL}")
         print("Gateway Response:")
         print(f"Status Code: {response.status_code}")
+        print(f"Response headers: {response.headers}")
         print(f"Response text: {response.text}")
     else:
-        print("Failed to send SOAP request to gateway.")
+        print("Failed to send SOAP message to ebMS gateway.")
     response = send_ebms_message(f"{SOLACE_REST_URL}/{EBMS_TOPIC}/", soap_message, unique_id)
+    print()
     if response:
-        print(f"REST request sent to broker {SOLACE_REST_URL}/{EBMS_TOPIC}/")
+        print(f"REST request sent to Solace broker {SOLACE_REST_URL}/{EBMS_TOPIC}/")
         print("Broker Response:")
         print(f"Status Code: {response.status_code}")
+        print(f"Response headers: {response.headers}")
         print(f"Response text: {response.text}")
     else:
-        print("Failed to send REST request to broker.")
+        print("Failed to send SOAP message to Solace broker.")
 
 if __name__ == "__main__":
     # Load values from the configuration

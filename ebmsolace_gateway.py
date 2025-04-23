@@ -4,9 +4,14 @@ import json
 import xml.etree.ElementTree as ET
 from solace.messaging.messaging_service import MessagingService
 from solace.messaging.resources.topic import Topic
+import time
 # ez
 from ez_config_loader import ConfigLoader
 from ez_opentelemetry import *
+
+def tprint(string):
+    """Takes a string and prints it with a timestamp prefixt."""
+    print('[{}] {}'.format(time.strftime("%Y-%m-%d %H:%M:%S"), string))
 
 def extract_soap_data(soap_xml):
     """Extracts Digipoort-kenmerk and body content from SOAP XML."""
@@ -77,7 +82,7 @@ def publish_to_solace(topic, message):
         publisher.publish(message, topic)
         return True
     except Exception as e:
-        print(f"Error publishing to Solace: {e}")
+        tprint(f"Error publishing to Solace: {e}")
         return False
 
 if __name__ == "__main__":
@@ -109,14 +114,14 @@ if __name__ == "__main__":
 
     # Connect to Solace broker
     messaging_service.connect()
-    print("Connect to Solace broker...")
+    tprint("Connect to Solace broker...")
 
     # Create publisher
     publisher = messaging_service.create_persistent_message_publisher_builder().build()
     publisher.start()
-    print("Pubsliher started...")
+    tprint("Pubsliher started...")
 
     server_address = ('localhost', 54321)
     httpd = HTTPServer(server_address, SOAPRequestHandler)
-    print("Starting HTTP server on port 54321...")
+    tprint("Starting HTTP server on port 54321...")
     httpd.serve_forever()

@@ -1,14 +1,14 @@
 # ebmsolace
-ebMS Solace PubSub+
+ebMS Solace PubSub+ or `ebmsolace` is a simple demo to show sending eBMS messages to a Python 'gateway' and Solace PubSub+ event broker in various ways and formats.
+
+## Context
+This demo is developed on Mac OS using Python (3.10.6+) and Colimna. Some terminal commands need to be adjusted to run on Linux or Windows. 
 
 ## Repo
 `git clone https://github.com/taatuut/ebmsolace.git`
 
-## Context
-Demo to show sending eBMS messages to gateway and Solace in various ways and formats.
-
 ## Setup
-Create and source a Python virtual environment, use `~/.venv`.
+Create and source a Python virtual environment, this demo use `~/.venv`.
 
 Open a terminal and run:
 
@@ -25,33 +25,81 @@ python3 -m pip install --upgrade pip
 python3 -m pip install requests lxml solace-pubsubplus pyyaml
 ```
 
-## Prep
-Check `sample.env` and copy/create `.env` with own values, then run `source .env`.
+## Set environment variables
+Check `sample.env` and copy/create `.env` with own values, then run:
 
-Add relevant information to configuration file (default config.json).
+```
+source .env
+```
 
-## Run
-A Solace broker must be running. Use Solace PubSub+ Cloud platform or a local Solace event broker. To run a local broker use a tool like Docker Desktop and Podman Desktop, or go without desktop and use something like `colima`.
+Add relevant information to configuration file `config.json`.
 
-Run container with Solace PubSub+ Event Broker Standard edition. Note usage of environment variables assuming these are sourced and running on mac/linux.
+## Publishing
+To run a Solace broker use Solace PubSub+ Cloud platform or a local Solace event broker container image. To run a local broker use a tool like Docker Desktop or Podman Desktop, or go without desktop and use something like `colima`. When using a local broker make sure a container runtime is started. This demo assumes using a local broker but configuration settings can be changed to work with a cloud broker too. 
+
+1.
+
+To run a Solace PubSub+ Event Broker container image run the following command. Note that the usage of environment variables assumes these are sourced before, also on Mac OS port 55555 must be mapped to 55554 as this is a reserved port since MacOS Big Sur.
 
 ```
 docker run -d -p 8080:8080 -p 55554:55555 -p 8008:8008 -p 1883:1883 -p 8000:8000 -p 5672:5672 -p 9000:9000 -p 2222:2222 --shm-size=2g --env username_admin_globalaccesslevel=$SOLACE_USER --env username_admin_password=$SOLACE_PASS --name=$SOLACE_NAME solace/solace-pubsub-standard
 ```
 
-To configure the Solace broker run `python3 ez_broker_configuration.py`
+2.
 
-Check in Solace PubSub+ Event Broker management console at http://localhost:8080/ to see queue statistics.
+Open Solace PubSub+ Event Broker management console at http://localhost:8080/.
 
-In one terminal run the ebmssolace gateway with `python3 ebmsolace_gateway.py`
+To configure the Solace broker run `python3 ez_broker_configuration.py`. This creates required queue and subscription if not existing. Will outoput somethign like:
 
-Open another terminal to send messages from. These will go directly to the Solace PubSub+ broker REST API, and to the ebmssolace gateway that processes the message and then sends it to the Solace PubSub+ broker.
+```
+Queue 'CUSTOM-QNAME-ebms' does not exist. Creating...
+Queue 'CUSTOM-QNAME-ebms' created successfully.
+Subscription 'ebms/messages/>' added to queue 'CUSTOM-QNAME-ebms'.
+Done.
+```
 
-To run once use `python3 ebMSSoapSender.py`, or run repeatedly every `<xx>` seconds run using `while true; do python3 ebMSSoapSender.py; sleep 10; done`
+Check Broker management / Messaging / Queues for the configured queue.
 
-Use the Solace `Try Me!` functionality to subscribe to the queue (see `config.json` for name) to see and consume the messages.
+3.
 
-## Commands
+In one terminal run the ebmssolace gateway with `python3 ebmsolace_gateway.py`. Will output something like:
+
+```
+Connect to Solace broker...
+Pubsliher started...
+Starting HTTP server on port 54321...
+```
+
+4.
+
+Open another terminal to send messages from. Make sure environment variables are available (run `source .env`) and virtual environment is activated (run `source ~/.venv/bin/activate`).
+
+The messages are sent in two ways: 1) directly to the Solace PubSub+ broker REST API, and 2) to the ebmssolace gateway started in the previous step: the gateway processes the message (conversion from XML to json, setting dynamic topic) and then sends it to the Solace PubSub+ broker using SMF protocol.
+
+To run once use `python3 ebMSSoapSender.py`, or run repeatedly every five seconds run using `while true; do python3 ebMSSoapSender.py; sleep 5; done`
+
+## Subscribing
+As client applications to subscribe to the topic or queue (see `config.json` for name) to display and consume the messages use something like:
+
+1) Solace `SDKPerf`
+2) The Solace `Try Me!` functionality available in the broker manager user interface, easy way to see both the XML and JSON messages and dynamic topic defintion
+3) `MQTTX` (https://mqttx.app/)
+4) Or your custom microservice (a simple Python script)
+
+Using the SDKPerf for Java & JMS, for more information on SDKPerf see https://docs.solace.com/API/SDKPerf/SDKPerf.htm Again reusing the environment variables so these must be sourced.
+
+```
+cd ~/sdkperf/sdkperf-jcsmp-8.4.17.5
+while true; do ./sdkperf_java.sh -cip=tcp://$SOLACE_HOST:$SOLACE_SMF_PORT -cu=$SOLACE_CLIENT_USER -cp=$SOLACE_CLIENT_PASS -sql='CUSTOM-QNAME-ebms' -md; sleep 5; done
+```
+
+For Try Me! and MQTTX see folder `./images` for some related screenshots.
+
+## Extra
+
+TODO: Add configuration to use Cloud broker instead of local.
+
+## Some useful commands
 ```
 python3 -m pip list > pip_list.txt
 ```
@@ -203,8 +251,8 @@ To fix issue with `colima` where running docker containers cannot be accessed on
 After `brew services start colima`, do a restart with `--network-address`.
 
 ```
-colima stop
-colima start --cpu 8 --memory 12 --network-address
+colima stop -f
+colima start --cpu 4 --memory 4 --network-address
 ```
 
 HINT: to watch the boot progress, see "~/.colima/_lima/<profile>/serial*.log"
@@ -235,7 +283,7 @@ docker: Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is t
 
 In that case just execute `docker run...` command again after a few seconds.
 
-Check running containers with `docker ps -a`. To remove a container use `docker rm -f CONTAINER_ID`.
+List all containers with `docker ps -a`. To remove a container use `docker rm -f CONTAINER_ID`.
 
 ```
 docker ps -a
