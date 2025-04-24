@@ -68,8 +68,10 @@ if __name__ == "__main__":
     SOLACE_HOST = os.environ["SOLACE_HOST"]
     SOLACE_MANAGEMENT_PORT = os.environ["SOLACE_MANAGEMENT_PORT"]
 
+    http_protocol = 'https://' if SOLACE_MANAGEMENT_PORT[-2:] == '43' else 'http://'
+
     # Base API URL
-    BASE_URL = f"http://{SOLACE_HOST}:{SOLACE_MANAGEMENT_PORT}/SEMP/v2/config/msgVpns/{SOLACE_VPN}"
+    BASE_URL = f"{http_protocol}{SOLACE_HOST}:{SOLACE_MANAGEMENT_PORT}/SEMP/v2/config/msgVpns/{SOLACE_VPN}"
 
     # Headers
     HEADERS = {

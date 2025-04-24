@@ -35,21 +35,17 @@ source .env
 Add relevant information to configuration file `config.json`.
 
 ## Publishing
-To run a Solace broker use Solace PubSub+ Cloud platform or a local Solace event broker container image. To run a local broker use a tool like Docker Desktop or Podman Desktop, or go without desktop and use something like `colima`. When using a local broker make sure a container runtime is started. This demo assumes using a local broker but configuration settings can be changed to work with a cloud broker too. 
+To run a Solace broker use Solace PubSub+ Cloud platform or a local Solace event broker container image. To run a local broker use a tool like Docker Desktop or Podman Desktop, or go without desktop and use something like `colima`.
 
-1.
+This demo assumes using a local broker but configuration settings can be changed to work with a cloud broker too. 
 
-To run a Solace PubSub+ Event Broker container image run the following command. Note that the usage of environment variables assumes these are sourced before, also on Mac OS port 55555 must be mapped to 55554 as this is a reserved port since MacOS Big Sur.
+1. To run a Solace PubSub+ Event Broker container image run the following command. Note that the usage of environment variables assumes these are sourced before, also on Mac OS port 55555 must be mapped to 55554 as this is a reserved port since MacOS Big Sur.
 
 ```
 docker run -d -p 8080:8080 -p 55554:55555 -p 8008:8008 -p 1883:1883 -p 8000:8000 -p 5672:5672 -p 9000:9000 -p 2222:2222 --shm-size=2g --env username_admin_globalaccesslevel=$SOLACE_USER --env username_admin_password=$SOLACE_PASS --name=$SOLACE_NAME solace/solace-pubsub-standard
 ```
 
-2.
-
-Open Solace PubSub+ Event Broker management console at http://localhost:8080/.
-
-To configure the Solace broker run `python3 ez_broker_configuration.py`. This creates required queue and subscription if not existing. Will outoput somethign like:
+2. Open Solace PubSub+ Event Broker management console at http://localhost:8080/. To configure the Solace broker run `python3 ez_broker_configuration.py`. This creates required queue and subscription if not existing and will outoput something like below. Then check Broker management / Messaging / Queues for information on the configured queue.
 
 ```
 Queue 'CUSTOM-QNAME-ebms' does not exist. Creating...
@@ -58,11 +54,7 @@ Subscription 'ebms/messages/>' added to queue 'CUSTOM-QNAME-ebms'.
 Done.
 ```
 
-Check Broker management / Messaging / Queues for the configured queue.
-
-3.
-
-In one terminal run the ebmssolace gateway with `python3 ebmsolace_gateway.py`. Will output something like:
+3. In one terminal run the ebmssolace gateway with `python3 ebmsolace_gateway.py`. Will output something like:
 
 ```
 Connect to Solace broker...
@@ -70,21 +62,20 @@ Pubsliher started...
 Starting HTTP server on port 54321...
 ```
 
-4.
+4. Open another terminal to send messages from. Make sure environment variables are available (run `source .env`) and virtual environment is activated (run `source ~/.venv/bin/activate`). The messages are sent in two ways:
 
-Open another terminal to send messages from. Make sure environment variables are available (run `source .env`) and virtual environment is activated (run `source ~/.venv/bin/activate`).
+- directly to the Solace PubSub+ broker REST API, and 
+- to the ebmssolace gateway started in the previous step: the gateway processes the message (conversion from XML to json, setting dynamic topic) and then sends it to the Solace PubSub+ broker using SMF protocol.
 
-The messages are sent in two ways: 1) directly to the Solace PubSub+ broker REST API, and 2) to the ebmssolace gateway started in the previous step: the gateway processes the message (conversion from XML to json, setting dynamic topic) and then sends it to the Solace PubSub+ broker using SMF protocol.
-
-To run once use `python3 ebMSSoapSender.py`, or run repeatedly every five seconds run using `while true; do python3 ebMSSoapSender.py; sleep 5; done`
+To execute once run `python3 ebMSSoapSender.py`, or run repeatedly every five seconds with `while true; do python3 ebMSSoapSender.py; sleep 5; done`
 
 ## Subscribing
-As client applications to subscribe to the topic or queue (see `config.json` for name) to display and consume the messages use something like:
+Client applications you can use to subscribe to the topic or queue on the broker (see `config.json` for name) to display and/or consume the published messages:
 
-1) Solace `SDKPerf`
-2) The Solace `Try Me!` functionality available in the broker manager user interface, easy way to see both the XML and JSON messages and dynamic topic defintion
-3) `MQTTX` (https://mqttx.app/)
-4) Or your custom microservice (a simple Python script)
+- Solace `SDKPerf`
+- The Solace `Try Me!` functionality available in the broker manager user interface, easy way to see both the XML and JSON messages and dynamic topic defintion
+- `MQTTX` (https://mqttx.app/)
+- Or your custom microservice (a simple Python script)
 
 Using the SDKPerf for Java & JMS, for more information on SDKPerf see https://docs.solace.com/API/SDKPerf/SDKPerf.htm Again reusing the environment variables so these must be sourced.
 
@@ -93,11 +84,75 @@ cd ~/sdkperf/sdkperf-jcsmp-8.4.17.5
 while true; do ./sdkperf_java.sh -cip=tcp://$SOLACE_HOST:$SOLACE_SMF_PORT -cu=$SOLACE_CLIENT_USER -cp=$SOLACE_CLIENT_PASS -sql='CUSTOM-QNAME-ebms' -md; sleep 5; done
 ```
 
-For Try Me! and MQTTX see folder `./images` for some related screenshots.
+For Try Me! and MQTTX see folder `./images` for related screenshots.
 
-## Extra
+## Extra: using Solace PubSub+ CLoud platform
 
-TODO: Add configuration to use Cloud broker instead of local.
+In Solace PubSub+ Cloud platform Cloud Console get the required parameter values for `.env.solace.cloud` file, then run `source .env.solace.cloud`
+
+To configure the Solace PubSub+ Cloud broker service run `python3 ez_broker_configuration.py`.
+
+Error message as below indicates something is wrong with port value and `http` protocol setting.
+
+```
+Queue 'CUSTOM-QNAME-ebms' does not exist. Creating...
+Failed to create queue 'CUSTOM-QNAME-ebms': <html>
+<head><title>400 The plain HTTP request was sent to HTTPS port</title></head>
+<body>
+<center><h1>400 Bad Request</h1></center>
+<center>The plain HTTP request was sent to HTTPS port</center>
+<hr><center>nginx</center>
+</body>
+</html>
+```
+
+If all is good check Broker management / Messaging / Queues for information on the configured queue.
+
+In all open terminals run `source .env.solace.cloud` and start scripts `python3 ebmsolace_gateway.py` and `while true; do python3 ebMSSoapSender.py; sleep 5; done` again.
+
+Error message as below indicates something is wrong with port value and `tcp` protocol setting.
+
+```
+2025-04-24 00:29:33,172 [WARNING] solace.messaging.core: [_solace_transport.py:89]  [[SERVICE: 0x10691f440] - [APP ID: ezSolace.local/41267/00000001/3q8Zy8WmZC]] {'caller_description': 'From service event callback', 'return_code': 'Ok', 'sub_code': 'SOLCLIENT_SUBCODE_COMMUNICATION_ERROR', 'error_info_sub_code': 14, 'error_info_contents': 'TCP: Could not read from socket 8, error = Connection reset by peer (54)'}
+2025-04-24 00:29:33,172 [WARNING] solace.messaging.core: [_solace_transport.py:89]  [[SERVICE: 0x10691f440] - [APP ID: ezSolace.local/41267/00000001/3q8Zy8WmZC]] {'caller_description': 'do_connect', 'return_code': 'Not ready', 'sub_code': 'SOLCLIENT_SUBCODE_COMMUNICATION_ERROR', 'error_info_sub_code': 14, 'error_info_contents': 'TCP: Could not read from socket 8, error = Connection reset by peer (54)'}
+2025-04-24 00:29:33,172 [WARNING] solace.messaging.connections: [messaging_service.py:1262]  [[SERVICE: 0x10691f440] - [APP ID: ezSolace.local/41267/00000001/3q8Zy8WmZC]] Connection failed. Status code: 3
+Traceback (most recent call last):
+  File "~/GitHub/taatuut/ebmsolace/ebmsolace_gateway.py", line 116, in <module>
+    messaging_service.connect()
+  File "~/.venv/lib/python3.12/site-packages/solace/messaging/messaging_service.py", line 1263, in connect
+    raise error
+solace.messaging.errors.pubsubplus_client_error.PubSubPlusCoreClientError: {'caller_description': 'do_connect', 'return_code': 'Not ready', 'sub_code': 'SOLCLIENT_SUBCODE_COMMUNICATION_ERROR', 'error_info_sub_code': 14, 'error_info_contents': 'TCP: Could not read from socket 8, error = Connection reset by peer (54)'}
+```
+
+Error message as below indicates something is wrong with secure connection setup related to (missing)) trust store PEM file and (missing)) import statements.
+
+```
+2025-04-24 00:35:13,103 [WARNING] solace.messaging.core: [_solace_session.py:885]  [[SERVICE: 0x103a66450] - [APP ID: None]] SOLCLIENT_SUBCODE_FAILED_LOADING_TRUSTSTORE
+2025-04-24 00:35:13,103 [WARNING] solace.messaging.core: [_solace_session.py:887]  [[SERVICE: 0x103a66450] - [APP ID: None]] SESSION CREATION UNSUCCESSFUL. Failed to load trust store.
+Traceback (most recent call last):
+  File "~/GitHub/taatuut/ebmsolace/ebmsolace_gateway.py", line 114, in <module>
+    .build()
+     ^^^^^^^
+  File "~/.venv/lib/python3.12/site-packages/solace/messaging/messaging_service.py", line 1770, in build
+    return _BasicMessagingService(config=self._stored_config, application_id=application_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "~/.venv/lib/python3.12/site-packages/solace/messaging/messaging_service.py", line 1064, in __init__
+    self._session.create_session(self._config)  # create the session as part of Messaging Service build process
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "~/.venv/lib/python3.12/site-packages/solace/messaging/core/_solace_session.py", line 888, in create_session
+    raise PubSubPlusCoreClientError(message=FAILED_TO_LOAD_TRUST_STORE, sub_code=info_sub_code)
+solace.messaging.errors.pubsubplus_client_error.PubSubPlusCoreClientError: SESSION CREATION UNSUCCESSFUL. Failed to load trust store.
+```
+
+Specific import statements for Solace secure connection:
+
+```
+from solace.messaging.messaging_service import RetryStrategy
+from solace.messaging.config.transport_security_strategy import TLS
+from solace.messaging.config.authentication_strategy import ClientCertificateAuthentication
+```
+
+
 
 ## Some useful commands
 ```
@@ -172,7 +227,7 @@ https://docs.solace.com/API/Connectors/Self-Contained-Connectors/Message-Process
 
 https://docs.solace.com/API/Messaging-APIs/Solace-APIs-Overview.htm
 
-Opentelemetry
+OpenTelemetry
 ---
 To enable context propagation for distributed tracing, you must first add the Solace PubSub+ OpenTelemetry Python Integration package as a dependency in your application. You can also add this package with the following command:
 
@@ -201,7 +256,7 @@ Observability Log fowarding, Insights monitoring, Distributed Tracing OpenTeleme
 
 ## Appendices
 
-### Python
+### Appendix Python
 Use `pipreqs` to collect and check required modules (do not use `freeze`).
 
 ```

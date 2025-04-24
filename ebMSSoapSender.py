@@ -112,8 +112,12 @@ if __name__ == "__main__":
     SOLACE_HOST = os.environ["SOLACE_HOST"]
     SOLACE_REST_PORT = os.environ["SOLACE_REST_PORT"]
 
+    http_protocol = 'https://' if SOLACE_REST_PORT[-2:] == '43' else 'http://'
+
+    userpass = '' if http_protocol == 'http://' else f"{SOLACE_CLIENT_USER}:{SOLACE_CLIENT_PASS}@" # TODO: sloppy... todo: proper check/setup
+
     # Solace REST API URL
-    SOLACE_REST_URL = f"http://{SOLACE_HOST}:{SOLACE_REST_PORT}"
+    SOLACE_REST_URL = f"{http_protocol}{userpass}{SOLACE_HOST}:{SOLACE_REST_PORT}"
 
     main()
 

@@ -2,8 +2,10 @@ import os
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 import xml.etree.ElementTree as ET
-from solace.messaging.messaging_service import MessagingService
+from solace.messaging.messaging_service import MessagingService, RetryStrategy
 from solace.messaging.resources.topic import Topic
+from solace.messaging.config.transport_security_strategy import TLS
+from solace.messaging.config.authentication_strategy import ClientCertificateAuthentication
 import time
 # ez
 from ez_config_loader import ConfigLoader
@@ -99,19 +101,37 @@ if __name__ == "__main__":
     SOLACE_CLIENT_PASS = os.environ["SOLACE_CLIENT_PASS"]
     SOLACE_HOST = os.environ["SOLACE_HOST"]
     SOLACE_SMF_PORT = os.environ["SOLACE_SMF_PORT"]
+    SOLACE_TRUSTSTORE_PEM = os.environ["SOLACE_TRUSTSTORE_PEM"]
 
-    # Initialize Solace Messaging Service
-    messaging_service = (
-        MessagingService.builder()
-        .from_properties({
-            "solace.messaging.transport.host": f"tcp://{SOLACE_HOST}:{SOLACE_SMF_PORT}",
-            "solace.messaging.service.vpn-name": SOLACE_MESSAGE_VPN,
-            "solace.messaging.authentication.scheme.basic.username": SOLACE_CLIENT_USER,
-            "solace.messaging.authentication.scheme.basic.password": SOLACE_CLIENT_PASS
-        })
-        .build()
-    )
+    tcp_protocol = 'tcps://' if SOLACE_SMF_PORT[-2:] == '43' else 'tcp://'
 
+    broker_props = {
+        "solace.messaging.transport.host": f"{tcp_protocol}{SOLACE_HOST}:{SOLACE_SMF_PORT}",
+        "solace.messaging.service.vpn-name": SOLACE_MESSAGE_VPN,
+        "solace.messaging.authentication.scheme.basic.username": SOLACE_CLIENT_USER,
+        "solace.messaging.authentication.scheme.basic.password": SOLACE_CLIENT_PASS,
+        #"solace.messaging.tls.trust-store-path": SOLACE_TRUSTSTORE_PEM
+    }
+
+    if tcp_protocol == 'tcp://': # TODO: sloppy... todo: proper check/setup
+        # Initialize Solace Messaging Service
+        messaging_service = (
+            MessagingService.builder()
+            .from_properties(broker_props)
+            .build()
+        )
+    else:
+        # In case of secure connection, still without certificate validation...
+        transport_security_strategy = TLS.create().without_certificate_validation() # TLS.create().with_certificate_validation(True, validate_server_name=False, trust_store_file_path=f"{SOLACE_TRUSTSTORE_PEM}")
+        messaging_service = (
+            MessagingService.builder()
+            .from_properties(broker_props)
+            .with_reconnection_retry_strategy(RetryStrategy.parametrized_retry(20,3))
+            .with_transport_security_strategy(transport_security_strategy)
+            #.with_authentication_strategy(ClientCertificateAuthentication.of(certificate_file=f"{SOLACE_TRUSTSTORE_PEM}",key_file="key_file",key_password="key_store_password"))
+            .build()   
+        )
+    
     # Connect to Solace broker
     messaging_service.connect()
     tprint("Connect to Solace broker...")

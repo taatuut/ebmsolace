@@ -174,3 +174,6 @@ cython_debug/
 pip_list.txt
 images/*.png
 **/.DS_Store
+DigiCertGlobalRootCA.crt.pem
+.env
+.env.solace.cloud
