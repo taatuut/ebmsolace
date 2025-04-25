@@ -152,7 +152,7 @@ from solace.messaging.config.transport_security_strategy import TLS
 from solace.messaging.config.authentication_strategy import ClientCertificateAuthentication
 ```
 
-
+For now using secure connection without certificate validation.
 
 ## Some useful commands
 ```
