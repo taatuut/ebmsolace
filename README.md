@@ -77,11 +77,11 @@ Client applications you can use to subscribe to the topic or queue on the broker
 - `MQTTX` (https://mqttx.app/)
 - Or your custom microservice (a simple Python script)
 
-Using the SDKPerf for Java & JMS, for more information on SDKPerf see https://docs.solace.com/API/SDKPerf/SDKPerf.htm Again reusing the environment variables so these must be sourced.
+Using the SDKPerf for Java & JMS, for more information on SDKPerf see https://docs.solace.com/API/SDKPerf/SDKPerf.htm Using the environment variables so these must be sourced for local or cloud broker.
 
 ```
-cd ~/sdkperf/sdkperf-jcsmp-8.4.17.5
-while true; do ./sdkperf_java.sh -cip=tcp://$SOLACE_HOST:$SOLACE_SMF_PORT -cu=$SOLACE_CLIENT_USER -cp=$SOLACE_CLIENT_PASS -sql='CUSTOM-QNAME-ebms' -md; sleep 5; done
+export SDKPERF_BASE=~/sdkperf/sdkperf-jcsmp-8.4.17.5
+$SDKPERF_BASE/sdkperf_java.sh -cip=$SOLACE_TCP_PROTOCOL$$SOLACE_HOST:$SOLACE_SMF_PORT -cu=$SOLACE_CLIENT_USER@$SOLACE_MESSAGE_VPN -cp=$SOLACE_CLIENT_PASS -sql='CUSTOM-QNAME-ebms' -md
 ```
 
 For Try Me! and MQTTX see folder `./images` for related screenshots.

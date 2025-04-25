@@ -103,17 +103,17 @@ if __name__ == "__main__":
     SOLACE_SMF_PORT = os.environ["SOLACE_SMF_PORT"]
     SOLACE_TRUSTSTORE_PEM = os.environ["SOLACE_TRUSTSTORE_PEM"]
 
-    tcp_protocol = 'tcps://' if SOLACE_SMF_PORT[-2:] == '43' else 'tcp://'
+    SOLACE_TCP_PROTOCOL = os.environ["SOLACE_TCP_PROTOCOL"]
 
     broker_props = {
-        "solace.messaging.transport.host": f"{tcp_protocol}{SOLACE_HOST}:{SOLACE_SMF_PORT}",
+        "solace.messaging.transport.host": f"{SOLACE_TCP_PROTOCOL}{SOLACE_HOST}:{SOLACE_SMF_PORT}",
         "solace.messaging.service.vpn-name": SOLACE_MESSAGE_VPN,
         "solace.messaging.authentication.scheme.basic.username": SOLACE_CLIENT_USER,
         "solace.messaging.authentication.scheme.basic.password": SOLACE_CLIENT_PASS,
         #"solace.messaging.tls.trust-store-path": SOLACE_TRUSTSTORE_PEM
     }
 
-    if tcp_protocol == 'tcp://': # TODO: sloppy... todo: proper check/setup
+    if SOLACE_TCP_PROTOCOL == 'tcp://': # TODO: sloppy... todo: proper check/setup
         # Initialize Solace Messaging Service
         messaging_service = (
             MessagingService.builder()
